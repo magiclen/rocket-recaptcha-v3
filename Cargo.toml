@@ -1,0 +1,35 @@
+[package]
+name = "rocket-recaptcha-v3"
+version = "0.1.0"
+authors = ["Magic Len <len@magiclen.org>"]
+edition = "2018"
+repository = "https://github.com/magiclen/rocket-recaptcha-v3"
+homepage = "https://magiclen.org/rocket-recaptcha-v3"
+keywords = ["rocket", "server", "web", "static", "tera"]
+categories = ["web-programming"]
+description= "This crate can help you use reCAPTCHA v3 in your web application."
+readme = "README.md"
+license = "MIT"
+
+[badges.travis-ci]
+repository = "magiclen/rocket-recaptcha-v3"
+branch = "master"
+
+[dependencies]
+rocket = "0.4.2"
+lazy_static = "1"
+regex = "1"
+easy-http-request = "0.2"
+serde = "1"
+serde_derive = "1"
+serde_json = "1"
+chrono = "0.4"
+
+rocket-client-addr = "0.4"
+
+[dependencies.validators]
+version = "0.20"
+features = ["rocketly"]
+
+[dev-dependencies]
+rocket-include-tera = "0.4"
