@@ -54,14 +54,12 @@
             'size': 'invisible'
         });
 
-        grecaptcha.ready(function () {
-            grecaptcha.execute(clientId, {action: 'login'}).then(function (token) {
-                document.getElementById('recaptcha_token').value = token;
-                submit.removeAttribute("disabled");
-            });
+        grecaptcha.execute(clientId, {action: 'login'}).then(function (token) {
+            document.getElementById('recaptcha_token').value = token;
+            submit.removeAttribute("disabled");
         });
     }
 </script>
-<script src="https://www.recaptcha.net/recaptcha/api.js?render=explicit&&onload=onReCaptchaLoadCallback"></script>
+<script src="https://www.recaptcha.net/recaptcha/api.js?render=explicit&&onload=onReCaptchaLoadCallback" async defer></script>
 
 </body>
