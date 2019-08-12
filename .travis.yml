@@ -16,6 +16,17 @@ matrix:
       install:
         - sudo apt update
         - sudo apt install musl-tools
+        - wget -c https://github.com/openssl/openssl/archive/OpenSSL_1_1_1c.tar.gz
+        - tar xzf OpenSSL_1_1_1c.tar.gz
+        - cd openssl-OpenSSL_1_1_1c
+        - export CC=musl-gcc
+        - export CFLAGS="-static -idirafter /usr/include/ -idirafter /usr/include/x86_64-linux-gnu/"
+        - ./Configure linux-x86_64 --prefix="$(pwd)/release" no-shared
+        - make -j$(nproc)
+        - make install
+        - export PKG_CONFIG_ALLOW_CROSS=1
+        - export X86_64_UNKNOWN_LINUX_MUSL_OPENSSL_INCLUDE_DIR="$(pwd)/release/include"
+        - export X86_64_UNKNOWN_LINUX_MUSL_OPENSSL_LIB_DIR="$(pwd)/release/lib"
         - rustup target add $TARGET
       script: cargo test --target $TARGET
     - rust: nightly
