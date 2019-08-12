@@ -41,7 +41,7 @@
 </div>
 {% endif %}
 
-
+<script src="https://www.recaptcha.net/recaptcha/api.js?render=explicit&&onload=onReCaptchaLoadCallback" async defer></script>
 <script>
     var submit = document.getElementById("submit");
 
@@ -60,6 +60,5 @@
         });
     }
 </script>
-<script src="https://www.recaptcha.net/recaptcha/api.js?render=explicit&&onload=onReCaptchaLoadCallback" async defer></script>
 
 </body>
