@@ -5,9 +5,9 @@ authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/rocket-recaptcha-v3"
 homepage = "https://magiclen.org/rocket-recaptcha-v3"
-keywords = ["rocket", "server", "web", "static", "tera"]
+keywords = ["rocket", "reCAPTCHA", "google", "captcha"]
 categories = ["web-programming"]
-description= "This crate can help you use reCAPTCHA v3 in your web application."
+description= "This crate can help you use reCAPTCHA v3 in your Rocket web application."
 readme = "README.md"
 license = "MIT"
 

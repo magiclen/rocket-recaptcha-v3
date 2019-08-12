@@ -4,38 +4,64 @@
     <meta charset=UTF-8>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Login</title>
-    <script src="https://www.recaptcha.net/recaptcha/api.js?render={{recaptcha_key}}"></script>
+    <style>
+        .w-256p {
+            width: 256px;
+        }
+
+        .w-256p input, .w-256p button {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .mt-05 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-1 {
+            margin-top: 1rem;
+        }
+    </style>
 </head>
 <body>
-<form method="post" action="/login">
-    <div style="width:200px;">
-        <label for="username">Username</label>
-        <input id="username" name="username" type="text" style="width:100%;">
-        <label for="password" style="margin-top:0.5rem;">Password</label>
-        <input id="password" name="password" type="password" style="width:100%;">
-    </div>
+<form class="w-256p" method="post" action="/login">
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text">
+    <label class="mt-05" for="password">Password</label>
+    <input id="password" name="password" type="password">
     <input id="recaptcha_token" name="recaptcha_token" type="hidden" value="">
-    <button id="submit" type="submit" style="margin-top:1rem;">Login</button>
+    <button id="submit" class="mt-1" type="submit">Login</button>
+</form>
 
-    {% if message %}
-    <div style="margin-top:1rem;">
-        {{message}}
-    </div>
-    {% endif %}
+<div id="inline-badge" class="mt-1"></div>
+
+{% if message %}
+<div class="mt-1">
+    {{message}}
+</div>
+{% endif %}
 
 
-    <script>
-        var submit = document.getElementById("submit");
+<script>
+    var submit = document.getElementById("submit");
 
-        submit.setAttribute('disabled', 'disabled');
+    submit.setAttribute('disabled', 'disabled');
+
+    function onReCaptchaLoadCallback() {
+        var clientId = grecaptcha.render('inline-badge', {
+            'sitekey': '{{recaptcha_key}}',
+            'badge': 'inline',
+            'size': 'invisible'
+        });
 
         grecaptcha.ready(function () {
-            grecaptcha.execute('{{recaptcha_key}}', {action: 'login'}).then(function (token) {
+            grecaptcha.execute(clientId, {action: 'login'}).then(function (token) {
                 document.getElementById('recaptcha_token').value = token;
                 submit.removeAttribute("disabled");
             });
         });
-    </script>
-</form>
+    }
+</script>
+<script src="https://www.recaptcha.net/recaptcha/api.js?render=explicit&&onload=onReCaptchaLoadCallback"></script>
 
 </body>

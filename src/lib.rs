@@ -1,9 +1,9 @@
 /*!
 # reCAPTCHA v3 for Rocket Framework
 
-This crate can help you use reCAPTCHA v3 in your web application.
+This crate can help you use reCAPTCHA v3 in your Rocket web application.
 
-See `examples`.
+See `Rocket.toml` and `examples`.
 */
 
 #[macro_use]
@@ -22,7 +22,13 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
 
+extern crate rocket;
+
 extern crate rocket_client_addr;
+
+mod verification;
+mod errors;
+mod fairing;
 
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -37,18 +43,13 @@ use chrono::prelude::*;
 
 pub use rocket_client_addr::ClientRealAddr;
 
-#[derive(Debug, Clone)]
-/// Errors of the `ReCaptcha` struct.
-pub enum ReCaptchaError {
-    /// The secret key is invalid.
-    InvalidInputSecret,
-    /// The reCAPTCHA token is invalid.
-    InvalidReCaptchaToken,
-    /// The reCAPTCHA token is no longer valid.
-    TimeoutOrDuplicate,
-    /// Errors caused by internal malfunctions.
-    InternalError(String),
-}
+pub use errors::ReCaptchaError;
+use fairing::ReCaptchaFairing;
+
+pub use verification::ReCaptchaVerification;
+use verification::ReCaptchaVerificationInner;
+
+const API_URL: &str = "https://www.google.com/recaptcha/api/siteverify";
 
 lazy_static! {
     static ref RE_KEY: Regex = {
@@ -60,32 +61,8 @@ lazy_static! {
     };
 }
 
-
 validated_customized_regex_string!(pub ReCaptchaKey, ref RE_KEY);
 validated_customized_regex_string!(pub ReCaptchaToken, ref RE_TOKEN);
-
-#[derive(Debug, Clone)]
-pub struct ReCaptchaVerification {
-    /// The score for this verification (0.0 - 1.0). The higher the more human.
-    pub score: f64,
-    /// The action name for this verification.
-    pub action: String,
-    /// The timestamp of the challenge load.
-    pub challenge_ts: DateTime<Utc>,
-    /// The hostname of the site where the reCAPTCHA was solved.
-    pub hostname: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct ReCaptchaVerificationInner {
-    success: bool,
-    score: Option<f64>,
-    action: Option<String>,
-    challenge_ts: Option<String>,
-    hostname: Option<String>,
-    #[serde(rename = "error-codes")]
-    error_codes: Option<Vec<String>>,
-}
 
 #[derive(Debug, Clone)]
 pub struct ReCaptcha {
@@ -141,11 +118,16 @@ impl ReCaptcha {
     pub fn get_secret_key_as_str(&self) -> &str {
         self.secret_key.as_str()
     }
+
+    #[inline]
+    pub fn fairing() -> ReCaptchaFairing {
+        ReCaptchaFairing
+    }
 }
 
 impl ReCaptcha {
     pub fn verify(&self, recaptcha_token: &ReCaptchaToken, remote_ip: Option<&ClientRealAddr>) -> Result<ReCaptchaVerification, ReCaptchaError> {
-        let mut request: HttpRequest<&str, String, &str, &str, &str, &str> = HttpRequest::post_from_url_str("https://www.google.com/recaptcha/api/siteverify").unwrap();
+        let mut request: HttpRequest<&str, String, &str, &str, &str, &str> = HttpRequest::post_from_url_str(API_URL).unwrap();
 
         request.query = Some({
             let mut map = HashMap::new();

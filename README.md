@@ -3,9 +3,9 @@ reCAPTCHA v3 for Rocket Framework
 
 [![Build Status](https://travis-ci.org/magiclen/rocket-recaptcha-v3.svg?branch=master)](https://travis-ci.org/magiclen/rocket-recaptcha-v3)
 
-This crate can help you use reCAPTCHA v3 in your web application.
+This crate can help you use reCAPTCHA v3 in your Rocket web application.
 
-See `examples`.
+See `Rocket.toml` and `examples`.
 
 ## Crates.io
 

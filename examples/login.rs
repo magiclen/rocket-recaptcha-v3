@@ -42,9 +42,6 @@ lazy_static! {
 validated_customized_regex_string!(Username, ref RE_USERNAME);
 validated_customized_regex_string!(Password, ref RE_PASSWORD);
 
-const RECAPTCHA_HTML_KEY: &str = "6Lf6dLIUAAAAAAxghN7nH6m_yuLfHwdD3N7FpanR";
-const RECAPTCHA_SECRET_KEY: &str = "6Lf6dLIUAAAAAHdJ4e0nsv-8OpFH-7Oad1XQ95rq";
-
 #[derive(Debug, FromForm)]
 struct LoginModel {
     username: Result<Username, ValidatedCustomizedStringError>,
@@ -76,17 +73,20 @@ fn login_post(recaptcha: State<ReCaptcha>, model: Form<LoginModel>) -> Result<Re
     map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
 
     match model.username.as_ref() {
-        Ok(_username) => {
+        Ok(username) => {
             match model.password.as_ref() {
-                Ok(_password) => {
+                Ok(password) => {
                     match model.recaptcha_token.as_ref() {
                         Ok(recaptcha_token) => {
                             match recaptcha.verify(recaptcha_token, None) {
                                 Ok(verification) => {
                                     if verification.score > 0.7 {
                                         // Verify the username/password here
-
-                                        map.insert("message", "Invalid username or password.");
+                                        if username.as_str() == "magiclen" && password.as_str() == "12345678" {
+                                            map.insert("message", "Login successfully, but not implement anything.");
+                                        } else {
+                                            map.insert("message", "Invalid username or password.");
+                                        }
                                     } else {
                                         map.insert("message", "You are probably not a human.");
                                     }
@@ -127,7 +127,7 @@ fn main() {
                 "login", "examples/views/login.tera",
             );
         }))
-        .manage(ReCaptcha::from_str(Some(RECAPTCHA_HTML_KEY), RECAPTCHA_SECRET_KEY).unwrap())
+        .attach(ReCaptcha::fairing())
         .mount("/", routes![index])
         .mount("/", routes![login_get, login_post])
         .launch();
