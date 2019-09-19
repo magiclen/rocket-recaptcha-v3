@@ -26,9 +26,9 @@ extern crate rocket;
 
 extern crate rocket_client_addr;
 
-mod verification;
 mod errors;
 mod fairing;
+mod verification;
 
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -52,13 +52,8 @@ use verification::ReCaptchaVerificationInner;
 const API_URL: &str = "https://www.google.com/recaptcha/api/siteverify";
 
 lazy_static! {
-    static ref RE_KEY: Regex = {
-        Regex::new(r"^[0-9a-zA-Z\-_]{40}$").unwrap()
-    };
-
-    static ref RE_TOKEN: Regex = {
-        Regex::new(r"^[0-9a-zA-Z\-_]+$").unwrap()
-    };
+    static ref RE_KEY: Regex = { Regex::new(r"^[0-9a-zA-Z\-_]{40}$").unwrap() };
+    static ref RE_TOKEN: Regex = { Regex::new(r"^[0-9a-zA-Z\-_]+$").unwrap() };
 }
 
 validated_customized_regex_string!(pub ReCaptchaKey, ref RE_KEY);
@@ -80,10 +75,13 @@ impl ReCaptcha {
     }
 
     #[inline]
-    pub fn from_str<S1: AsRef<str>, S2: AsRef<str>>(html_key: Option<S1>, secret_key: S2) -> Result<ReCaptcha, ValidatedCustomizedStringError> {
+    pub fn from_str<S1: AsRef<str>, S2: AsRef<str>>(
+        html_key: Option<S1>,
+        secret_key: S2,
+    ) -> Result<ReCaptcha, ValidatedCustomizedStringError> {
         let html_key = match html_key {
             Some(html_key) => Some(ReCaptchaKey::from_str(html_key.as_ref())?),
-            None => None
+            None => None,
         };
 
         let secret_key = ReCaptchaKey::from_str(secret_key.as_ref())?;
@@ -95,10 +93,13 @@ impl ReCaptcha {
     }
 
     #[inline]
-    pub fn from_string<S1: Into<String>, S2: Into<String>>(html_key: Option<S1>, secret_key: S2) -> Result<ReCaptcha, ValidatedCustomizedStringError> {
+    pub fn from_string<S1: Into<String>, S2: Into<String>>(
+        html_key: Option<S1>,
+        secret_key: S2,
+    ) -> Result<ReCaptcha, ValidatedCustomizedStringError> {
         let html_key = match html_key {
             Some(html_key) => Some(ReCaptchaKey::from_string(html_key.into())?),
-            None => None
+            None => None,
         };
 
         let secret_key = ReCaptchaKey::from_string(secret_key.into())?;
@@ -126,8 +127,13 @@ impl ReCaptcha {
 }
 
 impl ReCaptcha {
-    pub fn verify(&self, recaptcha_token: &ReCaptchaToken, remote_ip: Option<&ClientRealAddr>) -> Result<ReCaptchaVerification, ReCaptchaError> {
-        let mut request: HttpRequest<&str, String, &str, &str, &str, &str> = HttpRequest::post_from_url_str(API_URL).unwrap();
+    pub fn verify(
+        &self,
+        recaptcha_token: &ReCaptchaToken,
+        remote_ip: Option<&ClientRealAddr>,
+    ) -> Result<ReCaptchaVerification, ReCaptchaError> {
+        let mut request: HttpRequest<&str, String, &str, &str, &str, &str> =
+            HttpRequest::post_from_url_str(API_URL).unwrap();
 
         request.query = Some({
             let mut map = HashMap::new();
@@ -142,20 +148,35 @@ impl ReCaptcha {
             map
         });
 
-        let response = request.send().map_err(|err| ReCaptchaError::InternalError(format!("{:?}", err)))?;
+        let response =
+            request.send().map_err(|err| ReCaptchaError::InternalError(format!("{:?}", err)))?;
 
         if response.status_code == 200 {
             let body = response.body;
 
-            let result: ReCaptchaVerificationInner = serde_json::from_slice(&body).map_err(|err| ReCaptchaError::InternalError(err.to_string()))?;
+            let result: ReCaptchaVerificationInner = serde_json::from_slice(&body)
+                .map_err(|err| ReCaptchaError::InternalError(err.to_string()))?;
 
             if result.success {
-                let score = result.score.ok_or(ReCaptchaError::InternalError("There is no `score` field.".to_string()))?;
-                let action = result.action.ok_or(ReCaptchaError::InternalError("There is no `action` field.".to_string()))?;
-                let challenge_ts = result.challenge_ts.ok_or(ReCaptchaError::InternalError("There is no `challenge_ts` field.".to_string()))?;
-                let hostname = result.hostname.ok_or(ReCaptchaError::InternalError("There is no `hostname` field.".to_string()))?;
+                let score = result.score.ok_or_else(|| {
+                    ReCaptchaError::InternalError("There is no `score` field.".to_string())
+                })?;
+                let action = result.action.ok_or_else(|| {
+                    ReCaptchaError::InternalError("There is no `action` field.".to_string())
+                })?;
+                let challenge_ts = result.challenge_ts.ok_or_else(|| {
+                    ReCaptchaError::InternalError("There is no `challenge_ts` field.".to_string())
+                })?;
+                let hostname = result.hostname.ok_or_else(|| {
+                    ReCaptchaError::InternalError("There is no `hostname` field.".to_string())
+                })?;
 
-                let challenge_ts = DateTime::from_str(&challenge_ts).map_err(|_| ReCaptchaError::InternalError(format!("The format of the timestamp `{}` is incorrect.", challenge_ts)))?;
+                let challenge_ts = DateTime::from_str(&challenge_ts).map_err(|_| {
+                    ReCaptchaError::InternalError(format!(
+                        "The format of the timestamp `{}` is incorrect.",
+                        challenge_ts
+                    ))
+                })?;
 
                 Ok(ReCaptchaVerification {
                     score,
@@ -173,14 +194,19 @@ impl ReCaptcha {
                         } else if error_codes.contains(&"timeout-or-duplicate".to_string()) {
                             Err(ReCaptchaError::TimeoutOrDuplicate)
                         } else {
-                            Err(ReCaptchaError::InternalError("No expected error codes.".to_string()))
+                            Err(ReCaptchaError::InternalError(
+                                "No expected error codes.".to_string(),
+                            ))
                         }
                     }
-                    None => Err(ReCaptchaError::InternalError("No error codes.".to_string()))
+                    None => Err(ReCaptchaError::InternalError("No error codes.".to_string())),
                 }
             }
         } else {
-            Err(ReCaptchaError::InternalError(format!("The response status code of the `siteverify` API is {}.", response.status_code)))
+            Err(ReCaptchaError::InternalError(format!(
+                "The response status code of the `siteverify` API is {}.",
+                response.status_code
+            )))
         }
     }
 }
