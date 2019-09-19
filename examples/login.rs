@@ -22,21 +22,16 @@ use validators::ValidatedCustomizedStringError;
 
 use regex::Regex;
 
-use rocket::State;
 use rocket::request::Form;
 use rocket::response::Redirect;
+use rocket::State;
 
-use rocket_include_tera::{TeraResponse, TeraContextManager};
+use rocket_include_tera::{TeraContextManager, TeraResponse};
 use rocket_recaptcha_v3::{ReCaptcha, ReCaptchaToken};
 
 lazy_static! {
-    static ref RE_USERNAME: Regex = {
-        Regex::new(r"^\w{1,30}$").unwrap()
-    };
-
-    static ref RE_PASSWORD: Regex = {
-        Regex::new(r"^[\S ]{8,}$").unwrap()
-    };
+    static ref RE_USERNAME: Regex = { Regex::new(r"^\w{1,30}$").unwrap() };
+    static ref RE_PASSWORD: Regex = { Regex::new(r"^[\S ]{8,}$").unwrap() };
 }
 
 validated_customized_regex_string!(Username, ref RE_USERNAME);
@@ -51,23 +46,22 @@ struct LoginModel {
 
 #[get("/login")]
 fn login_get(cm: State<TeraContextManager>, recaptcha: State<ReCaptcha>) -> TeraResponse {
-    tera_response_cache!(
-        cm,
-        "login",
-        {
-            println!("Generate login and cache it...");
+    tera_response_cache!(cm, "login", {
+        println!("Generate login and cache it...");
 
-            let mut map = HashMap::new();
+        let mut map = HashMap::new();
 
-            map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
+        map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
 
-            tera_response!("login", &map)
-        }
-    )
+        tera_response!("login", &map)
+    })
 }
 
 #[post("/login", data = "<model>")]
-fn login_post(recaptcha: State<ReCaptcha>, model: Form<LoginModel>) -> Result<Redirect, TeraResponse> {
+fn login_post(
+    recaptcha: State<ReCaptcha>,
+    model: Form<LoginModel>,
+) -> Result<Redirect, TeraResponse> {
     let mut map = HashMap::new();
 
     map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
@@ -82,8 +76,13 @@ fn login_post(recaptcha: State<ReCaptcha>, model: Form<LoginModel>) -> Result<Re
                                 Ok(verification) => {
                                     if verification.score > 0.7 {
                                         // Verify the username/password here
-                                        if username.as_str() == "magiclen" && password.as_str() == "12345678" {
-                                            map.insert("message", "Login successfully, but not implement anything.");
+                                        if username.as_str() == "magiclen"
+                                            && password.as_str() == "12345678"
+                                        {
+                                            map.insert(
+                                                "message",
+                                                "Login successfully, but not implement anything.",
+                                            );
                                         } else {
                                             map.insert("message", "Invalid username or password.");
                                         }
@@ -97,7 +96,10 @@ fn login_post(recaptcha: State<ReCaptcha>, model: Form<LoginModel>) -> Result<Re
                             }
                         }
                         Err(_) => {
-                            map.insert("message", "The format of your reCAPTCHA token is incorrect.");
+                            map.insert(
+                                "message",
+                                "The format of your reCAPTCHA token is incorrect.",
+                            );
                         }
                     }
                 }
@@ -122,10 +124,7 @@ fn index() -> Redirect {
 fn main() {
     rocket::ignite()
         .attach(TeraResponse::fairing(|tera| {
-            tera_resources_initialize!(
-                tera,
-                "login", "examples/views/login.tera",
-            );
+            tera_resources_initialize!(tera, "login", "examples/views/login.tera",);
         }))
         .attach(ReCaptcha::fairing())
         .mount("/", routes![index])
