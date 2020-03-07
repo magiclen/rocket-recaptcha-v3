@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=UTF-8>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Login</title>
+    <style>
+        .w-256p {
+            width: 256px;
+        }
+
+        .w-256p input, .w-256p button {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .mt-05 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-1 {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<form id="login-form" class="w-256p" method="post" action="/login-v2">
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text">
+    <label class="mt-05" for="password">Password</label>
+    <input id="password" name="password" type="password">
+    <input id="recaptcha_token" name="recaptcha_token" type="hidden" value="">
+    <button id="login-submit" class="mt-1" type="button" onclick="onSubmit()">Login</button>
+</form>
+
+<div id="inline-badge" class="mt-1"></div>
+
+{% if message %}
+<div class="mt-1">
+    {{message}}
+</div>
+{% endif %}
+
+<script src="https://www.recaptcha.net/recaptcha/api.js?render=explicit&&onload=onReCaptchaLoadCallback" async defer></script>
+<script>
+    var submit = document.getElementById("login-submit");
+    var clientId;
+
+    submit.setAttribute('disabled', 'disabled');
+
+    function onSubmit() {
+        var recaptcha_token = grecaptcha.getResponse(clientId);
+
+        if (recaptcha_token) {
+            document.getElementById('recaptcha_token').value = recaptcha_token;
+            document.getElementById('login-form').submit();
+        } else {
+            alert('Are you a human?');
+        }
+    }
+
+    function onReCaptchaLoadCallback() {
+        clientId = grecaptcha.render('inline-badge', {
+            'sitekey': '{{recaptcha_key}}'
+        });
+
+        submit.removeAttribute("disabled");
+    }
+</script>
+
+</body>

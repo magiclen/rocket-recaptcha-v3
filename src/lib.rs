@@ -31,6 +31,7 @@ mod fairing;
 mod verification;
 
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use std::str::FromStr;
 
 use easy_http_request::HttpRequest;
@@ -59,26 +60,54 @@ lazy_static! {
 validated_customized_regex_string!(pub ReCaptchaKey, ref RE_KEY);
 validated_customized_regex_string!(pub ReCaptchaToken, ref RE_TOKEN);
 
-#[derive(Debug, Clone)]
-pub struct ReCaptcha {
-    html_key: Option<ReCaptchaKey>,
-    secret_key: ReCaptchaKey,
+pub trait ReCaptchaVariant: Sync + Send + 'static {
+    fn get_version_str(&self) -> &'static str;
 }
 
-impl ReCaptcha {
+#[derive(Debug, Clone, Copy)]
+pub struct V3;
+
+impl ReCaptchaVariant for V3 {
     #[inline]
-    pub fn new(html_key: Option<ReCaptchaKey>, secret_key: ReCaptchaKey) -> ReCaptcha {
+    fn get_version_str(&self) -> &'static str {
+        "v3"
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct V2;
+
+impl ReCaptchaVariant for V2 {
+    #[inline]
+    fn get_version_str(&self) -> &'static str {
+        "v2"
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ReCaptcha<V: ReCaptchaVariant = V3> {
+    html_key: Option<ReCaptchaKey>,
+    secret_key: ReCaptchaKey,
+    phantom: PhantomData<V>,
+}
+
+impl<V: ReCaptchaVariant> ReCaptcha<V> {
+    #[inline]
+    /// You should use the Rocket fairing mechanism instead of invoking this method to create a `ReCaptcha` instance.
+    pub fn new(html_key: Option<ReCaptchaKey>, secret_key: ReCaptchaKey) -> ReCaptcha<V> {
         ReCaptcha {
             html_key,
             secret_key,
+            phantom: PhantomData,
         }
     }
 
     #[inline]
+    /// You should use the Rocket fairing mechanism instead of invoking this method to create a `ReCaptcha` instance.
     pub fn from_str<S1: AsRef<str>, S2: AsRef<str>>(
         html_key: Option<S1>,
         secret_key: S2,
-    ) -> Result<ReCaptcha, ValidatedCustomizedStringError> {
+    ) -> Result<ReCaptcha<V>, ValidatedCustomizedStringError> {
         let html_key = match html_key {
             Some(html_key) => Some(ReCaptchaKey::from_str(html_key.as_ref())?),
             None => None,
@@ -86,17 +115,15 @@ impl ReCaptcha {
 
         let secret_key = ReCaptchaKey::from_str(secret_key.as_ref())?;
 
-        Ok(ReCaptcha {
-            html_key,
-            secret_key,
-        })
+        Ok(ReCaptcha::<V>::new(html_key, secret_key))
     }
 
     #[inline]
+    /// You should use the Rocket fairing mechanism instead of invoking this method to create a `ReCaptcha` instance.
     pub fn from_string<S1: Into<String>, S2: Into<String>>(
         html_key: Option<S1>,
         secret_key: S2,
-    ) -> Result<ReCaptcha, ValidatedCustomizedStringError> {
+    ) -> Result<ReCaptcha<V>, ValidatedCustomizedStringError> {
         let html_key = match html_key {
             Some(html_key) => Some(ReCaptchaKey::from_string(html_key.into())?),
             None => None,
@@ -104,10 +131,7 @@ impl ReCaptcha {
 
         let secret_key = ReCaptchaKey::from_string(secret_key.into())?;
 
-        Ok(ReCaptcha {
-            html_key,
-            secret_key,
-        })
+        Ok(ReCaptcha::<V>::new(html_key, secret_key))
     }
 
     #[inline]
@@ -119,14 +143,23 @@ impl ReCaptcha {
     pub fn get_secret_key_as_str(&self) -> &str {
         self.secret_key.as_str()
     }
-
-    #[inline]
-    pub fn fairing() -> ReCaptchaFairing {
-        ReCaptchaFairing
-    }
 }
 
 impl ReCaptcha {
+    #[inline]
+    /// Create a `ReCaptchaFairing<V3>` instance to load reCAPTCHA v3 keys. It will mount a `ReCaptcha<V3>` (`ReCaptcha`) instance on Rocket.
+    pub fn fairing() -> ReCaptchaFairing<V3> {
+        ReCaptchaFairing::<V3>::new()
+    }
+
+    #[inline]
+    /// Create a `ReCaptchaFairing<V2>` instance to load reCAPTCHA v2 keys. It will mount a `ReCaptcha<V2>` instance on Rocket.
+    pub fn fairing_v2() -> ReCaptchaFairing<V2> {
+        ReCaptchaFairing::<V2>::new()
+    }
+}
+
+impl<V: ReCaptchaVariant> ReCaptcha<V> {
     pub fn verify(
         &self,
         recaptcha_token: &ReCaptchaToken,
@@ -158,12 +191,8 @@ impl ReCaptcha {
                 .map_err(|err| ReCaptchaError::InternalError(err.to_string()))?;
 
             if result.success {
-                let score = result.score.ok_or_else(|| {
-                    ReCaptchaError::InternalError("There is no `score` field.".to_string())
-                })?;
-                let action = result.action.ok_or_else(|| {
-                    ReCaptchaError::InternalError("There is no `action` field.".to_string())
-                })?;
+                let score = result.score.unwrap_or(1.0);
+                let action = result.action;
                 let challenge_ts = result.challenge_ts.ok_or_else(|| {
                     ReCaptchaError::InternalError("There is no `challenge_ts` field.".to_string())
                 })?;

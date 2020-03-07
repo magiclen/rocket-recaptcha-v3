@@ -5,7 +5,7 @@ pub struct ReCaptchaVerification {
     /// The score for this verification (0.0 - 1.0). The higher the more human.
     pub score: f64,
     /// The action name for this verification.
-    pub action: String,
+    pub action: Option<String>,
     /// The timestamp of the challenge load.
     pub challenge_ts: DateTime<Utc>,
     /// The hostname of the site where the reCAPTCHA was solved.

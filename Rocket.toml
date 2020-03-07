@@ -1,3 +1,7 @@
 [global.recaptcha.v3]
 html_key = "6Lf6dLIUAAAAAAxghN7nH6m_yuLfHwdD3N7FpanR"
 secret_key = "6Lf6dLIUAAAAAHdJ4e0nsv-8OpFH-7Oad1XQ95rq"
+
+[global.recaptcha.v2]
+html_key = "6LeTbN8UAAAAAJHhWW-Fvdk3kCQjGJukknhvlAsV"
+secret_key = "6LeTbN8UAAAAAIDG3z4KDfA51Nf8B2G2pkCNrPo3"

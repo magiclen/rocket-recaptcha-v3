@@ -1,13 +1,13 @@
 [package]
 name = "rocket-recaptcha-v3"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/rocket-recaptcha-v3"
 homepage = "https://magiclen.org/rocket-recaptcha-v3"
 keywords = ["rocket", "reCAPTCHA", "google", "captcha"]
 categories = ["web-programming"]
-description= "This crate can help you use reCAPTCHA v3 in your Rocket web application."
+description= "This crate can help you use reCAPTCHA v3 (v2 is backward compatible) in your Rocket web application."
 readme = "README.md"
 license = "MIT"
 
