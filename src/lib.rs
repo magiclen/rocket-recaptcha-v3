@@ -53,8 +53,8 @@ use verification::ReCaptchaVerificationInner;
 const API_URL: &str = "https://www.google.com/recaptcha/api/siteverify";
 
 lazy_static! {
-    static ref RE_KEY: Regex = { Regex::new(r"^[0-9a-zA-Z\-_]{40}$").unwrap() };
-    static ref RE_TOKEN: Regex = { Regex::new(r"^[0-9a-zA-Z\-_]+$").unwrap() };
+    static ref RE_KEY: Regex = Regex::new(r"^[0-9a-zA-Z\-_]{40}$").unwrap();
+    static ref RE_TOKEN: Regex = Regex::new(r"^[0-9a-zA-Z\-_]+$").unwrap();
 }
 
 validated_customized_regex_string!(pub ReCaptchaKey, ref RE_KEY);
