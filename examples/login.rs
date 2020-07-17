@@ -4,12 +4,11 @@
 extern crate rocket_include_tera;
 
 #[macro_use]
+extern crate validators_derive;
+
 extern crate validators;
 
-#[macro_use]
-extern crate lazy_static;
-
-extern crate regex;
+extern crate once_cell;
 
 #[macro_use]
 extern crate rocket;
@@ -18,10 +17,6 @@ extern crate rocket_recaptcha_v3;
 
 use std::collections::HashMap;
 
-use validators::ValidatedCustomizedStringError;
-
-use regex::Regex;
-
 use rocket::request::Form;
 use rocket::response::Redirect;
 use rocket::State;
@@ -29,19 +24,28 @@ use rocket::State;
 use rocket_include_tera::{TeraContextManager, TeraResponse};
 use rocket_recaptcha_v3::{ReCaptcha, ReCaptchaToken, V2};
 
-lazy_static! {
-    static ref RE_USERNAME: Regex = { Regex::new(r"^\w{1,30}$").unwrap() };
-    static ref RE_PASSWORD: Regex = { Regex::new(r"^[\S ]{8,}$").unwrap() };
-}
+use validators::prelude::*;
+use validators::{Base64UrlError, RegexError};
+use validators_prelude::regex::Regex;
 
-validated_customized_regex_string!(Username, ref RE_USERNAME);
-validated_customized_regex_string!(Password, ref RE_PASSWORD);
+use once_cell::sync::Lazy;
+
+static RE_USERNAME: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\w{1,30}$").unwrap());
+static RE_PASSWORD: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[\S ]{8,}$").unwrap());
+
+#[derive(Debug, Clone, Validator)]
+#[validator(regex(RE_USERNAME))]
+pub struct Username(String);
+
+#[derive(Debug, Clone, Validator)]
+#[validator(regex(RE_PASSWORD))]
+pub struct Password(String);
 
 #[derive(Debug, FromForm)]
 struct LoginModel {
-    username: Result<Username, ValidatedCustomizedStringError>,
-    password: Result<Password, ValidatedCustomizedStringError>,
-    recaptcha_token: Result<ReCaptchaToken, ValidatedCustomizedStringError>,
+    username: Result<Username, RegexError>,
+    password: Result<Password, RegexError>,
+    recaptcha_token: Result<ReCaptchaToken, Base64UrlError>,
 }
 
 #[get("/login")]
@@ -76,9 +80,7 @@ fn login_post(
                                 Ok(verification) => {
                                     if verification.score > 0.7 {
                                         // Verify the username/password here
-                                        if username.as_str() == "magiclen"
-                                            && password.as_str() == "12345678"
-                                        {
+                                        if username.0 == "magiclen" && password.0 == "12345678" {
                                             map.insert(
                                                 "message",
                                                 "Login successfully, but not implement anything.",
@@ -148,9 +150,7 @@ fn login_v2_post(
                                 Ok(_verification) => {
                                     // if _verification.score > 0.7 { // reCAPTCHA v2's score is always 1.0
                                     // Verify the username/password here
-                                    if username.as_str() == "magiclen"
-                                        && password.as_str() == "12345678"
-                                    {
+                                    if username.0 == "magiclen" && password.0 == "12345678" {
                                         map.insert(
                                             "message",
                                             "Login successfully, but not implement anything.",

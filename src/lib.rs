@@ -7,11 +7,9 @@ See `Rocket.toml` and `examples`.
 */
 
 #[macro_use]
-extern crate validators;
+extern crate validators_derive;
 
-#[macro_use]
-extern crate lazy_static;
-extern crate regex;
+extern crate validators;
 
 extern crate easy_http_request;
 
@@ -28,6 +26,7 @@ extern crate rocket_client_addr;
 
 mod errors;
 mod fairing;
+mod models;
 mod verification;
 
 use std::collections::HashMap;
@@ -35,10 +34,6 @@ use std::marker::PhantomData;
 use std::str::FromStr;
 
 use easy_http_request::HttpRequest;
-
-use validators::ValidatedCustomizedStringError;
-
-use regex::Regex;
 
 use chrono::prelude::*;
 
@@ -50,15 +45,12 @@ use fairing::ReCaptchaFairing;
 pub use verification::ReCaptchaVerification;
 use verification::ReCaptchaVerificationInner;
 
+use validators::prelude::*;
+use validators::RegexError;
+
+pub use models::*;
+
 const API_URL: &str = "https://www.google.com/recaptcha/api/siteverify";
-
-lazy_static! {
-    static ref RE_KEY: Regex = Regex::new(r"^[0-9a-zA-Z\-_]{40}$").unwrap();
-    static ref RE_TOKEN: Regex = Regex::new(r"^[0-9a-zA-Z\-_]+$").unwrap();
-}
-
-validated_customized_regex_string!(pub ReCaptchaKey, ref RE_KEY);
-validated_customized_regex_string!(pub ReCaptchaToken, ref RE_TOKEN);
 
 pub trait ReCaptchaVariant: Sync + Send + 'static {
     fn get_version_str(&self) -> &'static str;
@@ -107,13 +99,13 @@ impl<V: ReCaptchaVariant> ReCaptcha<V> {
     pub fn from_str<S1: AsRef<str>, S2: AsRef<str>>(
         html_key: Option<S1>,
         secret_key: S2,
-    ) -> Result<ReCaptcha<V>, ValidatedCustomizedStringError> {
+    ) -> Result<ReCaptcha<V>, RegexError> {
         let html_key = match html_key {
-            Some(html_key) => Some(ReCaptchaKey::from_str(html_key.as_ref())?),
+            Some(html_key) => Some(ReCaptchaKey::parse_str(html_key.as_ref())?),
             None => None,
         };
 
-        let secret_key = ReCaptchaKey::from_str(secret_key.as_ref())?;
+        let secret_key = ReCaptchaKey::parse_str(secret_key.as_ref())?;
 
         Ok(ReCaptcha::<V>::new(html_key, secret_key))
     }
@@ -123,13 +115,13 @@ impl<V: ReCaptchaVariant> ReCaptcha<V> {
     pub fn from_string<S1: Into<String>, S2: Into<String>>(
         html_key: Option<S1>,
         secret_key: S2,
-    ) -> Result<ReCaptcha<V>, ValidatedCustomizedStringError> {
+    ) -> Result<ReCaptcha<V>, RegexError> {
         let html_key = match html_key {
-            Some(html_key) => Some(ReCaptchaKey::from_string(html_key.into())?),
+            Some(html_key) => Some(ReCaptchaKey::parse_string(html_key.into())?),
             None => None,
         };
 
-        let secret_key = ReCaptchaKey::from_string(secret_key.into())?;
+        let secret_key = ReCaptchaKey::parse_string(secret_key.into())?;
 
         Ok(ReCaptcha::<V>::new(html_key, secret_key))
     }
