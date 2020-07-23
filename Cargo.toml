@@ -1,6 +1,6 @@
 [package]
 name = "rocket-recaptcha-v3"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2018"
 repository = "https://github.com/magiclen/rocket-recaptcha-v3"
@@ -10,7 +10,7 @@ categories = ["web-programming"]
 description= "This crate can help you use reCAPTCHA v3 (v2 is backward compatible) in your Rocket web application."
 readme = "README.md"
 license = "MIT"
-include = ["src/**/*", "Cargo.toml"]
+include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [badges.travis-ci]
 repository = "magiclen/rocket-recaptcha-v3"
@@ -24,12 +24,12 @@ serde = "1"
 serde_derive = "1"
 serde_json = "1"
 chrono = "0.4"
-validators = "0.21"
+validators = "0.22"
 
 rocket-client-addr = "0.4"
 
 [dependencies.validators-derive]
-version = "0.21"
+version = "0.22"
 default-features = false
 features = ["rocket", "base64_url", "regex"]
 
