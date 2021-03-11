@@ -100,6 +100,7 @@ impl<V: ReCaptchaVariant> ReCaptcha<V> {
         html_key: Option<S1>,
         secret_key: S2,
     ) -> Result<ReCaptcha<V>, RegexError> {
+        #[allow(clippy::manual_map)]
         let html_key = match html_key {
             Some(html_key) => Some(ReCaptchaKey::parse_str(html_key.as_ref())?),
             None => None,
@@ -116,6 +117,7 @@ impl<V: ReCaptchaVariant> ReCaptcha<V> {
         html_key: Option<S1>,
         secret_key: S2,
     ) -> Result<ReCaptcha<V>, RegexError> {
+        #[allow(clippy::manual_map)]
         let html_key = match html_key {
             Some(html_key) => Some(ReCaptchaKey::parse_string(html_key.into())?),
             None => None,
