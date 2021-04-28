@@ -1,5 +1,3 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
 #[macro_use]
 extern crate rocket_include_tera;
 
@@ -17,15 +15,14 @@ extern crate rocket_recaptcha_v3;
 
 use std::collections::HashMap;
 
-use rocket::request::Form;
+use rocket::form::{self, Form};
 use rocket::response::Redirect;
 use rocket::State;
 
-use rocket_include_tera::{TeraContextManager, TeraResponse};
+use rocket_include_tera::{EtagIfNoneMatch, TeraContextManager, TeraResponse};
 use rocket_recaptcha_v3::{ReCaptcha, ReCaptchaToken, V2};
 
 use validators::prelude::*;
-use validators::{Base64UrlError, RegexError};
 use validators_prelude::regex::Regex;
 
 use once_cell::sync::Lazy;
@@ -42,41 +39,53 @@ pub struct Username(String);
 pub struct Password(String);
 
 #[derive(Debug, FromForm)]
-struct LoginModel {
-    username: Result<Username, RegexError>,
-    password: Result<Password, RegexError>,
-    recaptcha_token: Result<ReCaptchaToken, Base64UrlError>,
+struct LoginModel<'v> {
+    username: form::Result<'v, Username>,
+    password: form::Result<'v, Password>,
+    recaptcha_token: form::Result<'v, ReCaptchaToken>,
 }
 
 #[get("/login")]
-fn login_get(cm: State<TeraContextManager>, recaptcha: State<ReCaptcha>) -> TeraResponse {
-    tera_response_cache!(cm, "login", {
+fn login_get(
+    cm: State<TeraContextManager>,
+    etag_if_none_match: &EtagIfNoneMatch,
+    recaptcha: State<ReCaptcha>,
+) -> TeraResponse {
+    tera_response_cache!(cm, etag_if_none_match, "login", {
         println!("Generate login and cache it...");
 
         let mut map = HashMap::new();
 
         map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
 
-        tera_response!("login", &map)
+        tera_response!(cm, EtagIfNoneMatch::default(), "login", &map)
     })
 }
 
 #[post("/login", data = "<model>")]
-fn login_post(
-    recaptcha: State<ReCaptcha>,
-    model: Form<LoginModel>,
+async fn login_post(
+    cm: State<'_, TeraContextManager>,
+    etag_if_none_match: &EtagIfNoneMatch<'_>,
+    recaptcha: State<'_, ReCaptcha>,
+    model: Form<LoginModel<'_>>,
 ) -> Result<Redirect, TeraResponse> {
     let mut map = HashMap::new();
 
     map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
 
-    match model.username.as_ref() {
-        Ok(username) => {
-            match model.password.as_ref() {
-                Ok(password) => {
-                    match model.recaptcha_token.as_ref() {
-                        Ok(recaptcha_token) => {
-                            match recaptcha.verify(recaptcha_token, None) {
+    let username = model.username.as_ref().ok();
+
+    match username {
+        Some(username) => {
+            let password = model.password.as_ref().ok();
+
+            match password {
+                Some(password) => {
+                    let recaptcha_token = model.recaptcha_token.as_ref().ok();
+
+                    match recaptcha_token {
+                        Some(recaptcha_token) => {
+                            match recaptcha.verify(recaptcha_token, None).await {
                                 Ok(verification) => {
                                     if verification.score > 0.7 {
                                         // Verify the username/password here
@@ -97,7 +106,7 @@ fn login_post(
                                 }
                             }
                         }
-                        Err(_) => {
+                        None => {
                             map.insert(
                                 "message",
                                 "The format of your reCAPTCHA token is incorrect.",
@@ -105,48 +114,60 @@ fn login_post(
                         }
                     }
                 }
-                Err(_) => {
+                None => {
                     map.insert("message", "The format of your password is incorrect.");
                 }
             }
         }
-        Err(_) => {
+        None => {
             map.insert("message", "The format of your username is incorrect.");
         }
     }
 
-    Err(tera_response!("login", &map))
+    Err(tera_response!(cm, etag_if_none_match, "login", &map))
 }
 
 #[get("/login-v2")]
-fn login_v2_get(cm: State<TeraContextManager>, recaptcha: State<ReCaptcha<V2>>) -> TeraResponse {
-    tera_response_cache!(cm, "login_v2", {
+fn login_v2_get(
+    cm: State<TeraContextManager>,
+    etag_if_none_match: &EtagIfNoneMatch,
+    recaptcha: State<ReCaptcha<V2>>,
+) -> TeraResponse {
+    tera_response_cache!(cm, etag_if_none_match, "login_v2", {
         println!("Generate login-v2 and cache it...");
 
         let mut map = HashMap::new();
 
         map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
 
-        tera_response!("login_v2", &map)
+        tera_response!(cm, EtagIfNoneMatch::default(), "login_v2", &map)
     })
 }
 
 #[post("/login-v2", data = "<model>")]
-fn login_v2_post(
-    recaptcha: State<ReCaptcha<V2>>,
-    model: Form<LoginModel>,
+async fn login_v2_post(
+    cm: State<'_, TeraContextManager>,
+    recaptcha: State<'_, ReCaptcha<V2>>,
+    etag_if_none_match: &EtagIfNoneMatch<'_>,
+    model: Form<LoginModel<'_>>,
 ) -> Result<Redirect, TeraResponse> {
     let mut map = HashMap::new();
 
     map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
 
-    match model.username.as_ref() {
-        Ok(username) => {
-            match model.password.as_ref() {
-                Ok(password) => {
-                    match model.recaptcha_token.as_ref() {
-                        Ok(recaptcha_token) => {
-                            match recaptcha.verify(recaptcha_token, None) {
+    let username = model.username.as_ref().ok();
+
+    match username {
+        Some(username) => {
+            let password = model.password.as_ref().ok();
+
+            match password {
+                Some(password) => {
+                    let recaptcha_token = model.recaptcha_token.as_ref().ok();
+
+                    match recaptcha_token {
+                        Some(recaptcha_token) => {
+                            match recaptcha.verify(recaptcha_token, None).await {
                                 Ok(_verification) => {
                                     // if _verification.score > 0.7 { // reCAPTCHA v2's score is always 1.0
                                     // Verify the username/password here
@@ -167,22 +188,22 @@ fn login_v2_post(
                                 }
                             }
                         }
-                        Err(_) => {
+                        None => {
                             map.insert("message", "Are you a human?");
                         }
                     }
                 }
-                Err(_) => {
+                None => {
                     map.insert("message", "The format of your password is incorrect.");
                 }
             }
         }
-        Err(_) => {
+        None => {
             map.insert("message", "The format of your username is incorrect.");
         }
     }
 
-    Err(tera_response!("login_v2", &map))
+    Err(tera_response!(cm, etag_if_none_match, "login_v2", &map))
 }
 
 #[get("/")]
@@ -190,21 +211,16 @@ fn index() -> Redirect {
     Redirect::temporary(uri!(login_get))
 }
 
-fn main() {
-    rocket::ignite()
-        .attach(TeraResponse::fairing(|tera| {
-            tera_resources_initialize!(
-                tera,
-                "login",
-                "examples/views/login.tera",
-                "login_v2",
-                "examples/views/login_v2.tera"
-            );
-        }))
+#[launch]
+async fn rocket() -> _ {
+    rocket::build()
+        .attach(tera_resources_initializer!(
+            "login" => "examples/views/login.tera",
+            "login_v2" => "examples/views/login_v2.tera"
+        ))
         .attach(ReCaptcha::fairing())
         .attach(ReCaptcha::fairing_v2())
         .mount("/", routes![index])
         .mount("/", routes![login_get, login_post])
         .mount("/", routes![login_v2_get, login_v2_post])
-        .launch();
 }

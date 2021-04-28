@@ -1,7 +1,7 @@
 reCAPTCHA v3 for Rocket Framework
 ====================
 
-[![Build Status](https://travis-ci.org/magiclen/rocket-recaptcha-v3.svg?branch=master)](https://travis-ci.org/magiclen/rocket-recaptcha-v3)
+[![CI](https://github.com/magiclen/rocket-recaptcha-v3/actions/workflows/ci.yml/badge.svg)](https://github.com/magiclen/rocket-recaptcha-v3/actions/workflows/ci.yml)
 
 This crate can help you use reCAPTCHA v3 (v2 is backward compatible) in your Rocket web application.
 

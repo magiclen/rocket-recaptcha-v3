@@ -11,7 +11,7 @@ extern crate validators_derive;
 
 extern crate validators;
 
-extern crate easy_http_request;
+extern crate reqwest;
 
 extern crate chrono;
 
@@ -33,9 +33,8 @@ use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::str::FromStr;
 
-use easy_http_request::HttpRequest;
-
 use chrono::prelude::*;
+use reqwest::Client;
 
 pub use rocket_client_addr::ClientRealAddr;
 
@@ -154,15 +153,12 @@ impl ReCaptcha {
 }
 
 impl<V: ReCaptchaVariant> ReCaptcha<V> {
-    pub fn verify(
+    pub async fn verify(
         &self,
         recaptcha_token: &ReCaptchaToken,
         remote_ip: Option<&ClientRealAddr>,
     ) -> Result<ReCaptchaVerification, ReCaptchaError> {
-        let mut request: HttpRequest<&str, String, &str, &str, &str, &str> =
-            HttpRequest::post_from_url_str(API_URL).unwrap();
-
-        request.query = Some({
+        let request = Client::new().post(API_URL).query(&{
             let mut map = HashMap::new();
 
             map.insert("secret", self.get_secret_key_as_str().to_string());
@@ -175,13 +171,18 @@ impl<V: ReCaptchaVariant> ReCaptcha<V> {
             map
         });
 
-        let response =
-            request.send().map_err(|err| ReCaptchaError::InternalError(format!("{:?}", err)))?;
+        let response = request
+            .send()
+            .await
+            .map_err(|err| ReCaptchaError::InternalError(format!("{:?}", err)))?;
 
-        if response.status_code == 200 {
-            let body = response.body;
+        if response.status().is_success() {
+            let body = response
+                .bytes()
+                .await
+                .map_err(|err| ReCaptchaError::InternalError(format!("{:?}", err)))?;
 
-            let result: ReCaptchaVerificationInner = serde_json::from_slice(&body)
+            let result: ReCaptchaVerificationInner = serde_json::from_slice(body.as_ref())
                 .map_err(|err| ReCaptchaError::InternalError(err.to_string()))?;
 
             if result.success {
@@ -228,7 +229,7 @@ impl<V: ReCaptchaVariant> ReCaptcha<V> {
         } else {
             Err(ReCaptchaError::InternalError(format!(
                 "The response status code of the `siteverify` API is {}.",
-                response.status_code
+                response.status().as_u16()
             )))
         }
     }

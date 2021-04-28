@@ -1,4 +1,4 @@
-use crate::rocket::Rocket;
+use crate::rocket::{Build, Rocket};
 
 use crate::rocket::fairing::{Fairing, Info, Kind};
 
@@ -27,21 +27,25 @@ impl ReCaptchaFairing<V2> {
     }
 }
 
+#[rocket::async_trait]
 impl<V: ReCaptchaVariant> Fairing for ReCaptchaFairing<V> {
     fn info(&self) -> Info {
         Info {
             name: FAIRING_NAME,
-            kind: Kind::Attach,
+            kind: Kind::Ignite,
         }
     }
 
-    fn on_attach(&self, rocket: Rocket) -> Result<Rocket, Rocket> {
-        let recaptcha =
-            rocket.config().extras.get("recaptcha").and_then(|recaptcha| recaptcha.as_table());
+    async fn on_ignite(&self, rocket: Rocket<Build>) -> Result<Rocket<Build>, Rocket<Build>> {
+        let recaptcha = rocket
+            .figment()
+            .find_value("recaptcha")
+            .ok()
+            .and_then(|recaptcha| recaptcha.into_dict());
 
         match recaptcha {
             Some(recaptcha) => {
-                let v = recaptcha.get(self.variant.get_version_str()).and_then(|v| v.as_table());
+                let v = recaptcha.get(self.variant.get_version_str()).and_then(|v| v.as_dict());
 
                 match v {
                     Some(v) => {
