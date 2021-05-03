@@ -34,6 +34,7 @@ use std::marker::PhantomData;
 use std::str::FromStr;
 
 use chrono::prelude::*;
+use reqwest::header::{self, HeaderMap, HeaderValue};
 use reqwest::Client;
 
 pub use rocket_client_addr::ClientRealAddr;
@@ -158,18 +159,31 @@ impl<V: ReCaptchaVariant> ReCaptcha<V> {
         recaptcha_token: &ReCaptchaToken,
         remote_ip: Option<&ClientRealAddr>,
     ) -> Result<ReCaptchaVerification, ReCaptchaError> {
-        let request = Client::new().post(API_URL).query(&{
-            let mut map = HashMap::new();
+        let request = Client::builder()
+            .default_headers({
+                // The Content-Length header is necessary, or it will return 411 status.
 
-            map.insert("secret", self.get_secret_key_as_str().to_string());
-            map.insert("response", recaptcha_token.as_str().to_string());
+                let mut map = HeaderMap::with_capacity(1);
 
-            if let Some(remote_ip) = remote_ip {
-                map.insert("remoteip", remote_ip.ip.to_string());
-            }
+                map.insert(header::CONTENT_LENGTH, HeaderValue::from(0usize));
 
-            map
-        });
+                map
+            })
+            .build()
+            .unwrap()
+            .post(API_URL)
+            .query(&{
+                let mut map = HashMap::new();
+
+                map.insert("secret", self.get_secret_key_as_str().to_string());
+                map.insert("response", recaptcha_token.as_str().to_string());
+
+                if let Some(remote_ip) = remote_ip {
+                    map.insert("remoteip", remote_ip.ip.to_string());
+                }
+
+                map
+            });
 
         let response = request
             .send()
