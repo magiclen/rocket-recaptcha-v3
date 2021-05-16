@@ -47,9 +47,9 @@ struct LoginModel<'v> {
 
 #[get("/login")]
 fn login_get(
-    cm: State<TeraContextManager>,
+    cm: &State<TeraContextManager>,
     etag_if_none_match: &EtagIfNoneMatch,
-    recaptcha: State<ReCaptcha>,
+    recaptcha: &State<ReCaptcha>,
 ) -> TeraResponse {
     tera_response_cache!(cm, etag_if_none_match, "login", {
         println!("Generate login and cache it...");
@@ -64,9 +64,9 @@ fn login_get(
 
 #[post("/login", data = "<model>")]
 async fn login_post(
-    cm: State<'_, TeraContextManager>,
+    cm: &State<TeraContextManager>,
     etag_if_none_match: &EtagIfNoneMatch<'_>,
-    recaptcha: State<'_, ReCaptcha>,
+    recaptcha: &State<ReCaptcha>,
     model: Form<LoginModel<'_>>,
 ) -> Result<Redirect, TeraResponse> {
     let mut map = HashMap::new();
@@ -129,9 +129,9 @@ async fn login_post(
 
 #[get("/login-v2")]
 fn login_v2_get(
-    cm: State<TeraContextManager>,
+    cm: &State<TeraContextManager>,
     etag_if_none_match: &EtagIfNoneMatch,
-    recaptcha: State<ReCaptcha<V2>>,
+    recaptcha: &State<ReCaptcha<V2>>,
 ) -> TeraResponse {
     tera_response_cache!(cm, etag_if_none_match, "login_v2", {
         println!("Generate login-v2 and cache it...");
@@ -146,8 +146,8 @@ fn login_v2_get(
 
 #[post("/login-v2", data = "<model>")]
 async fn login_v2_post(
-    cm: State<'_, TeraContextManager>,
-    recaptcha: State<'_, ReCaptcha<V2>>,
+    cm: &State<TeraContextManager>,
+    recaptcha: &State<ReCaptcha<V2>>,
     etag_if_none_match: &EtagIfNoneMatch<'_>,
     model: Form<LoginModel<'_>>,
 ) -> Result<Redirect, TeraResponse> {
