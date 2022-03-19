@@ -6,24 +6,6 @@ This crate can help you use reCAPTCHA v3 in your Rocket web application.
 See `Rocket.toml` and `examples`.
 */
 
-#[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
-
-extern crate reqwest;
-
-extern crate chrono;
-
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-
-extern crate rocket;
-
-extern crate rocket_client_addr;
-
 mod errors;
 mod fairing;
 mod models;

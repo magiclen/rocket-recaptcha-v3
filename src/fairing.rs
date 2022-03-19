@@ -1,6 +1,5 @@
-use crate::rocket::{Build, Rocket};
-
-use crate::rocket::fairing::{Fairing, Info, Kind};
+use rocket::fairing::{Fairing, Info, Kind};
+use rocket::{Build, Rocket};
 
 use crate::{ReCaptcha, ReCaptchaVariant, V2, V3};
 

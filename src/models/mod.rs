@@ -1,6 +1,4 @@
-extern crate once_cell;
-
-use crate::validators::prelude::*;
+use validators::prelude::*;
 
 use validators_prelude::regex::Regex;
 

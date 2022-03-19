@@ -2,16 +2,7 @@
 extern crate rocket_include_tera;
 
 #[macro_use]
-extern crate validators_derive;
-
-extern crate validators;
-
-extern crate once_cell;
-
-#[macro_use]
 extern crate rocket;
-
-extern crate rocket_recaptcha_v3;
 
 use std::collections::HashMap;
 
