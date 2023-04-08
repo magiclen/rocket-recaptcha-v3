@@ -6,17 +6,16 @@ extern crate rocket;
 
 use std::collections::HashMap;
 
-use rocket::form::{self, Form};
-use rocket::response::Redirect;
-use rocket::State;
-
+use once_cell::sync::Lazy;
+use rocket::{
+    form::{self, Form},
+    response::Redirect,
+    State,
+};
 use rocket_include_tera::{EtagIfNoneMatch, TeraContextManager, TeraResponse};
 use rocket_recaptcha_v3::{ReCaptcha, ReCaptchaToken, V2};
-
 use validators::prelude::*;
 use validators_prelude::regex::Regex;
-
-use once_cell::sync::Lazy;
 
 static RE_USERNAME: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\w{1,30}$").unwrap());
 static RE_PASSWORD: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[\S ]{8,}$").unwrap());
@@ -31,8 +30,8 @@ pub struct Password(String);
 
 #[derive(Debug, FromForm)]
 struct LoginModel<'v> {
-    username: form::Result<'v, Username>,
-    password: form::Result<'v, Password>,
+    username:        form::Result<'v, Username>,
+    password:        form::Result<'v, Password>,
     recaptcha_token: form::Result<'v, ReCaptchaToken>,
 }
 
@@ -91,28 +90,28 @@ async fn login_post(
                                     } else {
                                         map.insert("message", "You are probably not a human.");
                                     }
-                                }
+                                },
                                 Err(_) => {
                                     map.insert("message", "Please try again.");
-                                }
+                                },
                             }
-                        }
+                        },
                         None => {
                             map.insert(
                                 "message",
                                 "The format of your reCAPTCHA token is incorrect.",
                             );
-                        }
+                        },
                     }
-                }
+                },
                 None => {
                     map.insert("message", "The format of your password is incorrect.");
-                }
+                },
             }
-        }
+        },
         None => {
             map.insert("message", "The format of your username is incorrect.");
-        }
+        },
     }
 
     Err(tera_response!(cm, etag_if_none_match, "login", &map))
@@ -173,25 +172,25 @@ async fn login_v2_post(
                                     // } else {
                                     // map.insert("message", "You are probably not a human.");
                                     // }
-                                }
+                                },
                                 Err(_) => {
                                     map.insert("message", "Please try again.");
-                                }
+                                },
                             }
-                        }
+                        },
                         None => {
                             map.insert("message", "Are you a human?");
-                        }
+                        },
                     }
-                }
+                },
                 None => {
                     map.insert("message", "The format of your password is incorrect.");
-                }
+                },
             }
-        }
+        },
         None => {
             map.insert("message", "The format of your username is incorrect.");
-        }
+        },
     }
 
     Err(tera_response!(cm, etag_if_none_match, "login_v2", &map))

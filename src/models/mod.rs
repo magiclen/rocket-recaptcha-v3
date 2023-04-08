@@ -1,8 +1,6 @@
-use validators::prelude::*;
-
-use validators_prelude::regex::Regex;
-
 use once_cell::sync::Lazy;
+use validators::prelude::*;
+use validators_prelude::regex::Regex;
 
 static RE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[0-9a-zA-Z\-_]{40}$").unwrap());
 

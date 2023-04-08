@@ -11,26 +11,20 @@ mod fairing;
 mod models;
 mod verification;
 
-use std::collections::HashMap;
-use std::marker::PhantomData;
-use std::str::FromStr;
+use std::{collections::HashMap, marker::PhantomData, str::FromStr};
 
 use chrono::prelude::*;
-use reqwest::header::{self, HeaderMap, HeaderValue};
-use reqwest::Client;
-
-pub use rocket_client_addr::ClientRealAddr;
-
 pub use errors::ReCaptchaError;
 use fairing::ReCaptchaFairing;
-
+pub use models::*;
+use reqwest::{
+    header::{self, HeaderMap, HeaderValue},
+    Client,
+};
+pub use rocket_client_addr::ClientRealAddr;
+use validators::{prelude::*, RegexError};
 pub use verification::ReCaptchaVerification;
 use verification::ReCaptchaVerificationInner;
-
-use validators::prelude::*;
-use validators::RegexError;
-
-pub use models::*;
 
 const API_URL: &str = "https://www.google.com/recaptcha/api/siteverify";
 
@@ -60,9 +54,9 @@ impl ReCaptchaVariant for V2 {
 
 #[derive(Debug, Clone)]
 pub struct ReCaptcha<V: ReCaptchaVariant = V3> {
-    html_key: Option<ReCaptchaKey>,
+    html_key:   Option<ReCaptchaKey>,
     secret_key: ReCaptchaKey,
-    phantom: PhantomData<V>,
+    phantom:    PhantomData<V>,
 }
 
 impl<V: ReCaptchaVariant> ReCaptcha<V> {
@@ -218,7 +212,7 @@ impl<V: ReCaptchaVariant> ReCaptcha<V> {
                                 "No expected error codes.".to_string(),
                             ))
                         }
-                    }
+                    },
                     None => Err(ReCaptchaError::InternalError("No error codes.".to_string())),
                 }
             }

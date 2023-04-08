@@ -3,6 +3,7 @@ name = "rocket-recaptcha-v3"
 version = "0.3.2"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2021"
+rust-version = "1.63"
 repository = "https://github.com/magiclen/rocket-recaptcha-v3"
 homepage = "https://magiclen.org/rocket-recaptcha-v3"
 keywords = ["rocket", "reCAPTCHA", "google", "captcha"]
@@ -13,7 +14,7 @@ license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
-rocket = "0.5.0-rc.2"
+rocket = "0.5.0-rc.3"
 once_cell = "1"
 reqwest = "0.11"
 serde = { version = "1", features = ["derive"] }

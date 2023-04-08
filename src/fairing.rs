@@ -1,5 +1,7 @@
-use rocket::fairing::{Fairing, Info, Kind};
-use rocket::{Build, Rocket};
+use rocket::{
+    fairing::{Fairing, Info, Kind},
+    Build, Rocket,
+};
 
 use crate::{ReCaptcha, ReCaptchaVariant, V2, V3};
 
@@ -13,7 +15,7 @@ pub struct ReCaptchaFairing<V: ReCaptchaVariant = V3> {
 impl ReCaptchaFairing<V3> {
     pub(crate) fn new() -> ReCaptchaFairing<V3> {
         ReCaptchaFairing {
-            variant: V3,
+            variant: V3
         }
     }
 }
@@ -21,7 +23,7 @@ impl ReCaptchaFairing<V3> {
 impl ReCaptchaFairing<V2> {
     pub(crate) fn new() -> ReCaptchaFairing<V2> {
         ReCaptchaFairing {
-            variant: V2,
+            variant: V2
         }
     }
 }
@@ -30,8 +32,7 @@ impl ReCaptchaFairing<V2> {
 impl<V: ReCaptchaVariant> Fairing for ReCaptchaFairing<V> {
     fn info(&self) -> Info {
         Info {
-            name: FAIRING_NAME,
-            kind: Kind::Ignite,
+            name: FAIRING_NAME, kind: Kind::Ignite
         }
     }
 
@@ -60,13 +61,13 @@ impl<V: ReCaptchaVariant> Fairing for ReCaptchaFairing<V> {
                                     ReCaptcha::<V>::from_str(html_key, secret_key).unwrap();
 
                                 Ok(rocket.manage(recaptcha))
-                            }
+                            },
                             None => Err(rocket),
                         }
-                    }
+                    },
                     None => Err(rocket),
                 }
-            }
+            },
             None => Err(rocket),
         }
     }

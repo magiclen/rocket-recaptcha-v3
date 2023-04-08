@@ -1,5 +1,7 @@
-use std::error::Error;
-use std::fmt::{Display, Error as FmtError, Formatter};
+use std::{
+    error::Error,
+    fmt::{Display, Error as FmtError, Formatter},
+};
 
 #[derive(Debug, Clone)]
 /// Errors of the `ReCaptcha` struct.
@@ -22,7 +24,7 @@ impl Display for ReCaptchaError {
             ReCaptchaError::InvalidReCaptchaToken => f.write_str("The reCAPTCHA token is invalid."),
             ReCaptchaError::TimeoutOrDuplicate => {
                 f.write_str("The reCAPTCHA token is no longer valid.")
-            }
+            },
             ReCaptchaError::InternalError(text) => f.write_str(text),
         }
     }
