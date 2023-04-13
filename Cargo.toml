@@ -9,7 +9,6 @@ homepage = "https://magiclen.org/rocket-recaptcha-v3"
 keywords = ["rocket", "reCAPTCHA", "google", "captcha"]
 categories = ["web-programming"]
 description = "This crate can help you use reCAPTCHA v3 (v2 is backward compatible) in your Rocket web application."
-readme = "README.md"
 license = "MIT"
 include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
