@@ -1,6 +1,6 @@
 [package]
 name = "rocket-recaptcha-v3"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2021"
 rust-version = "1.67.1"
