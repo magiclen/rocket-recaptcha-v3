@@ -53,4 +53,4 @@ jobs:
         with:
           toolchain: ${{ matrix.toolchain }}
           rustflags: ""
-      - run: cargo test --release --lin --bins ${{ matrix.features }}
+      - run: cargo test --release --lib --bins ${{ matrix.features }}
