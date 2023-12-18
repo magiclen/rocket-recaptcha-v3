@@ -1,9 +1,9 @@
 [package]
 name = "rocket-recaptcha-v3"
-version = "0.3.5"
+version = "0.3.6"
 authors = ["Magic Len <len@magiclen.org>"]
 edition = "2021"
-rust-version = "1.69"
+rust-version = "1.70"
 repository = "https://github.com/magiclen/rocket-recaptcha-v3"
 homepage = "https://magiclen.org/rocket-recaptcha-v3"
 keywords = ["rocket", "reCAPTCHA", "google", "captcha"]
