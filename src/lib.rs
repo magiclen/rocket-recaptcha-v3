@@ -22,7 +22,7 @@ use reqwest::{
     Client,
 };
 pub use rocket_client_addr::ClientRealAddr;
-use validators::{prelude::*, RegexError};
+use validators::{errors::RegexError, prelude::*};
 pub use verification::ReCaptchaVerification;
 use verification::ReCaptchaVerificationInner;
 
