@@ -9,6 +9,10 @@ static RE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[0-9a-zA-Z\-_]{40}$").un
 pub struct ReCaptchaKey(String);
 
 impl ReCaptchaKey {
+    pub fn new(token: String) -> Self {
+        ReCaptchaKey(token)
+    }
+
     #[inline]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
@@ -20,6 +24,10 @@ impl ReCaptchaKey {
 pub struct ReCaptchaToken(String);
 
 impl ReCaptchaToken {
+    pub fn new(token: String) -> Self {
+        ReCaptchaToken(token)
+    }
+
     #[inline]
     pub fn as_str(&self) -> &str {
         self.0.as_str()
