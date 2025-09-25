@@ -23,7 +23,7 @@ chrono = "0.4"
 rocket-client-addr = "0.5"
 
 [dependencies.validators]
-version = "0.25"
+version = "0.26"
 default-features = false
 features = ["derive", "rocket", "base64_url", "regex"]
 
