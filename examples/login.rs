@@ -45,7 +45,7 @@ fn login_get(
 
         let mut map = HashMap::new();
 
-        map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
+        map.insert("recaptcha_key", recaptcha.html_key().unwrap().as_str());
 
         tera_response!(cm, EtagIfNoneMatch::default(), "login", &map)
     })
@@ -60,7 +60,7 @@ async fn login_post(
 ) -> Result<Redirect, TeraResponse> {
     let mut map = HashMap::new();
 
-    map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
+    map.insert("recaptcha_key", recaptcha.html_key().unwrap().as_str());
 
     let username = model.username.as_ref().ok();
 
@@ -127,7 +127,7 @@ fn login_v2_get(
 
         let mut map = HashMap::new();
 
-        map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
+        map.insert("recaptcha_key", recaptcha.html_key().unwrap().as_str());
 
         tera_response!(cm, EtagIfNoneMatch::default(), "login_v2", &map)
     })
@@ -142,7 +142,7 @@ async fn login_v2_post(
 ) -> Result<Redirect, TeraResponse> {
     let mut map = HashMap::new();
 
-    map.insert("recaptcha_key", recaptcha.get_html_key_as_str().unwrap());
+    map.insert("recaptcha_key", recaptcha.html_key().unwrap().as_str());
 
     let username = model.username.as_ref().ok();
 

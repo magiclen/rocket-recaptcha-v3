@@ -2,6 +2,7 @@ use chrono::prelude::*;
 use serde::Deserialize;
 
 #[derive(Debug, Clone)]
+/// A reCAPTCHA token which the `siteverify` API has accepted.
 pub struct ReCaptchaVerification {
     /// The score for this verification (0.0 - 1.0). The higher the more human.
     pub score:        f64,
@@ -18,7 +19,7 @@ pub(crate) struct ReCaptchaVerificationInner {
     pub(crate) success:      bool,
     pub(crate) score:        Option<f64>,
     pub(crate) action:       Option<String>,
-    pub(crate) challenge_ts: Option<String>,
+    pub(crate) challenge_ts: Option<DateTime<Utc>>,
     pub(crate) hostname:     Option<String>,
     #[serde(rename = "error-codes")]
     pub(crate) error_codes:  Option<Vec<String>>,
