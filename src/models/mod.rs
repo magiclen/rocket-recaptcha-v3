@@ -1,8 +1,9 @@
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
+
 use validators::prelude::*;
 use validators_prelude::regex::Regex;
 
-static RE_KEY: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[0-9a-zA-Z\-_]{40}$").unwrap());
+static RE_KEY: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[0-9a-zA-Z\-_]{40}$").unwrap());
 
 #[derive(Debug, Clone, Validator)]
 #[validator(regex(regex = RE_KEY))]

@@ -18,8 +18,8 @@ pub use errors::ReCaptchaError;
 use fairing::ReCaptchaFairing;
 pub use models::*;
 use reqwest::{
-    header::{self, HeaderMap, HeaderValue},
     Client,
+    header::{self, HeaderMap, HeaderValue},
 };
 pub use rocket_client_addr::ClientRealAddr;
 use validators::{errors::RegexError, prelude::*};

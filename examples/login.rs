@@ -4,21 +4,20 @@ extern crate rocket_include_tera;
 #[macro_use]
 extern crate rocket;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::LazyLock};
 
-use once_cell::sync::Lazy;
 use rocket::{
+    State,
     form::{self, Form},
     response::Redirect,
-    State,
 };
 use rocket_include_tera::{EtagIfNoneMatch, TeraContextManager, TeraResponse};
 use rocket_recaptcha_v3::{ReCaptcha, ReCaptchaToken, V2};
 use validators::prelude::*;
 use validators_prelude::regex::Regex;
 
-static RE_USERNAME: Lazy<Regex> = Lazy::new(|| Regex::new(r"^\w{1,30}$").unwrap());
-static RE_PASSWORD: Lazy<Regex> = Lazy::new(|| Regex::new(r"^[\S ]{8,}$").unwrap());
+static RE_USERNAME: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\w{1,30}$").unwrap());
+static RE_PASSWORD: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[\S ]{8,}$").unwrap());
 
 #[derive(Debug, Clone, Validator)]
 #[validator(regex(regex = RE_USERNAME))]

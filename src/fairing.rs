@@ -1,6 +1,6 @@
 use rocket::{
-    fairing::{Fairing, Info, Kind},
     Build, Rocket,
+    fairing::{Fairing, Info, Kind},
 };
 
 use crate::{ReCaptcha, ReCaptchaVariant, V2, V3};
